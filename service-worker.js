@@ -2,7 +2,7 @@
 // Estratégia: cache-first com network update em background.
 // Permite à app correr 100% offline depois da primeira visita.
 
-const CACHE_NAME = 'loja-industria-debito-gas-v2026.05.05.c';
+const CACHE_NAME = 'loja-industria-debito-gas-v2026.10.07';
 const ASSETS = [
   './',
   './index.html',

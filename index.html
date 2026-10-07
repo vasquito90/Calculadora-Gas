@@ -1002,6 +1002,20 @@
     font-weight: 500;
   }
   .result.highlight .unit-mini { color: rgba(255, 255, 255, 0.9); }
+  /* Result hierarchy: measured power is the main figure, required/normal are references */
+  .results-grid { grid-template-columns: 1.6fr 1fr; grid-template-rows: auto auto; }
+  .result.main { grid-row: 1 / span 2; display:flex; flex-direction:column; justify-content:center; padding: 22px 24px; }
+  .result.main .value { font-size: 64px; }
+  .result.main .unit-mini { font-size: 18px; }
+  .result.main .label { font-size: 12px; }
+  .result.ref { padding: 12px 14px; background: rgba(255,255,255,0.04); }
+  .result.ref .value { font-size: 24px; color: rgba(255,255,255,0.8); }
+  .result.ref .label { font-size: 9px; margin-bottom: 6px; }
+  .result.ref .sub-value { margin-top: 6px; padding-top: 4px; font-size: 10px; }
+  .result.ref .sub-value b { font-size: 11px; }
+  .result .tag { display:inline-block; margin-left:8px; padding:2px 6px; border-radius:3px; background:rgba(255,255,255,0.22); font-size:9px; letter-spacing:1px; }
+  .result .tag-ref { display:inline-block; margin-left:6px; padding:1px 5px; border-radius:3px; border:1px solid rgba(255,255,255,0.2); font-size:8px; letter-spacing:1px; opacity:.8; }
+  @media (max-width: 880px) { .results-grid { grid-template-columns: 1fr; } .result.main { grid-row:auto; } .result.main .value { font-size: 52px; } }
   .result .sub-value {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -1066,6 +1080,16 @@
     letter-spacing: 1px;
     font-weight: 600;
   }
+  .result.main { grid-row: 1 / span 3; }
+  .result.ref.dev .value { font-size: 22px; white-space: nowrap; }
+  .result.ref.dev .sub-value { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .result.ref.dev .status { padding: 3px 7px; font-size: 8px; letter-spacing: .8px; }
+  /* Compact deviation strip */
+  .compare { margin-top: 12px; padding: 8px 14px; gap: 10px; }
+  .compare .label-small { font-size: 9px; margin-bottom: 2px; }
+  .compare .delta-value { font-size: 17px; }
+  .compare .delta-sub { font-size: 10px; margin-top: 2px; }
+  .compare .status { padding: 5px 10px; font-size: 9px; }
   .status.ok { background: var(--green-soft); color: var(--green); }
   .status.warn { background: var(--warn-soft); color: var(--warn); }
 
@@ -1108,6 +1132,18 @@
     margin-top: 10px;
     font-family: 'JetBrains Mono', monospace;
   }
+
+  .ref-tabs { display:flex; gap:6px; border-bottom:2px solid var(--line); margin:6px 0 4px; flex-wrap:wrap; }
+  .ref-tab { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; background:none; border:none; border-bottom:3px solid transparent; margin-bottom:-2px; padding:8px 14px; color:var(--muted); cursor:pointer; }
+  .ref-tab:hover { color:var(--navy); }
+  .ref-tab.active { color:var(--orange); border-bottom-color:var(--orange); }
+  .ref-sheet { display:none; }
+  .ref-sheet.active { display:block; }
+  .ref-subtitle { font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; color:var(--navy); margin:8px 0 10px; letter-spacing:.3px; }
+  .ref-subtitle span { font-weight:500; color:var(--muted); font-size:14px; }
+  table.ref thead th small { font-size:11px; opacity:.75; letter-spacing:.5px; text-transform:none; }
+  table.ref thead th sub { text-transform:none; }
+  .card.collapsible.open .collapsible-body { max-height: 6000px; }
 
   /* FORMULAS */
   .formula {
@@ -1287,6 +1323,11 @@
       <span class="chevron">▾</span>
     </h3>
     <div class="collapsible-body">
+      <div class="ref-tabs" role="tablist">
+        <button type="button" class="ref-tab active" data-sheet="sheet-eta" onclick="refSheet(this)">Potência / Rendimento</button>
+        <button type="button" class="ref-tab" data-sheet="sheet-vapor" onclick="refSheet(this)">Caldeiras a Vapor</button>
+      </div>
+      <div class="ref-sheet active" id="sheet-eta">
       <div style="padding-top:6px;">
         <div class="ref-table-wrap">
           <table class="ref">
@@ -1304,6 +1345,27 @@
           </table>
         </div>
         <div class="table-note">Valores em kW · Potência de queima (Q<sub>N</sub>) que o queimador deve fornecer para entregar a potência útil indicada.</div>
+      </div>
+      </div>
+      <div class="ref-sheet" id="sheet-vapor">
+        <div style="padding-top:6px;">
+          <div class="ref-subtitle">Consulta rápida · caldeiras de vapor <span>(base: caldeiras LGI)</span></div>
+          <div class="ref-table-wrap">
+            <table class="ref">
+              <thead><tr><th>Caldeira</th><th>Potência</th><th>Prod. vapor</th><th>Giglleur total · 20 bar<br><small>Nafta / gasóleo</small></th></tr></thead>
+              <tbody><tr><td class="gen">10 m²</td><td>290 kW</td><td>400 kg/h</td><td>4,50 GPH</td></tr><tr><td class="gen">15 m²</td><td>435 kW</td><td>600 kg/h</td><td>7,00 GPH</td></tr><tr><td class="gen">20 m²</td><td>580 kW</td><td>800 kg/h</td><td>9,00 GPH</td></tr><tr><td class="gen">25 m²</td><td>725 kW</td><td>1 000 kg/h</td><td>11,00 GPH</td></tr><tr><td class="gen">30 m²</td><td>870 kW</td><td>1 200 kg/h</td><td>13,50 GPH</td></tr><tr><td class="gen">35 m²</td><td>1 015 kW</td><td>1 400 kg/h</td><td>16,00 GPH</td></tr><tr><td class="gen">40 m²</td><td>1 160 kW</td><td>1 600 kg/h</td><td>18,00 GPH</td></tr><tr><td class="gen">45 m²</td><td>1 305 kW</td><td>1 800 kg/h</td><td>20,50 GPH</td></tr><tr><td class="gen">50 m²</td><td>1 450 kW</td><td>2 000 kg/h</td><td>22,50 GPH</td></tr><tr><td class="gen">60 m²</td><td>1 740 kW</td><td>2 400 kg/h</td><td>27,50 GPH</td></tr><tr><td class="gen">70 m²</td><td>2 030 kW</td><td>2 800 kg/h</td><td>32,50 GPH</td></tr><tr><td class="gen">80 m²</td><td>2 320 kW</td><td>3 200 kg/h</td><td>36,00 GPH</td></tr><tr><td class="gen">100 m²</td><td>2 900 kW</td><td>4 000 kg/h</td><td>—</td></tr><tr><td class="gen">125 m²</td><td>3 625 kW</td><td>5 000 kg/h</td><td>—</td></tr><tr><td class="gen">150 m²</td><td>4 361 kW</td><td>6 000 kg/h</td><td>—</td></tr><tr><td class="gen">175 m²</td><td>5 075 kW</td><td>7 000 kg/h</td><td>—</td></tr><tr><td class="gen">200 m²</td><td>5 200 kW</td><td>8 000 kg/h</td><td>—</td></tr><tr><td class="gen">250 m²</td><td>7 250 kW</td><td>10 000 kg/h</td><td>—</td></tr><tr><td class="gen">280 m²</td><td>8 120 kW</td><td>11 000 kg/h</td><td>—</td></tr><tr><td class="gen">300 m²</td><td>8 700 kW</td><td>12 000 kg/h</td><td>—</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-note">m² = superfície de aquecimento · Giglleur total a 20 bar de pressão de bomba.</div>
+          <div class="ref-subtitle" style="margin-top:22px;">Tabela de vapor saturado</div>
+          <div class="ref-table-wrap">
+            <table class="ref">
+              <thead><tr><th>Pressão<br><small>bar</small></th><th>Temperatura<br><small>°C</small></th><th>Água h<sub>f</sub><br><small>kJ/kg</small></th><th>Evaporação h<sub>fg</sub><br><small>kJ/kg</small></th><th>Vapor h<sub>g</sub><br><small>kJ/kg</small></th><th>Vol. específico<br><small>m³/kg</small></th></tr></thead>
+              <tbody><tr><td class="gen">0,50</td><td>111,61</td><td>468,3</td><td>2 225,6</td><td>2 693,9</td><td>1,149</td></tr><tr><td class="gen">1,00</td><td>120,42</td><td>505,6</td><td>2 201,1</td><td>2 706,7</td><td>0,881</td></tr><tr><td class="gen">1,50</td><td>127,62</td><td>536,1</td><td>2 181,0</td><td>2 717,1</td><td>0,714</td></tr><tr><td class="gen">2,00</td><td>133,69</td><td>562,2</td><td>2 163,3</td><td>2 725,5</td><td>0,603</td></tr><tr><td class="gen">2,60</td><td>140,00</td><td>589,2</td><td>2 144,7</td><td>2 733,9</td><td>0,509</td></tr><tr><td class="gen">3,00</td><td>143,75</td><td>605,3</td><td>2 133,4</td><td>2 738,7</td><td>0,461</td></tr><tr><td class="gen">3,60</td><td>148,84</td><td>627,1</td><td>2 117,8</td><td>2 744,9</td><td>0,405</td></tr><tr><td class="gen">4,00</td><td>151,96</td><td>640,7</td><td>2 108,1</td><td>2 748,8</td><td>0,374</td></tr><tr><td class="gen">4,50</td><td>155,55</td><td>656,3</td><td>2 096,7</td><td>2 753,0</td><td>0,342</td></tr><tr><td class="gen">5,00</td><td>158,92</td><td>670,9</td><td>2 086,0</td><td>2 756,9</td><td>0,315</td></tr><tr><td class="gen">5,50</td><td>162,08</td><td>684,6</td><td>2 075,7</td><td>2 760,3</td><td>0,292</td></tr><tr><td class="gen">6,00</td><td>165,04</td><td>697,5</td><td>2 066,0</td><td>2 763,5</td><td>0,272</td></tr><tr><td class="gen">6,50</td><td>167,83</td><td>709,7</td><td>2 056,8</td><td>2 766,5</td><td>0,255</td></tr><tr><td class="gen">7,00</td><td>170,50</td><td>721,4</td><td>2 047,7</td><td>2 769,1</td><td>0,240</td></tr><tr><td class="gen">7,50</td><td>173,02</td><td>732,5</td><td>2 039,2</td><td>2 771,7</td><td>0,227</td></tr><tr><td class="gen">8,00</td><td>175,43</td><td>743,1</td><td>2 030,9</td><td>2 774,0</td><td>0,215</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-note">h<sub>g</sub> = h<sub>f</sub> + h<sub>fg</sub> · Energia para produzir 1 kg de vapor a partir de água à temperatura de saturação.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1409,31 +1471,28 @@
   <div class="result-card">
     <h3>Resultados</h3>
     <div class="results-grid">
-      <div class="result">
-        <div class="label">POT. NORMAL · V<sub>N</sub></div>
-        <div class="value"><span id="r_VN_kW">—</span><span class="unit-mini">kW</span></div>
-        <div class="sub-value"><b id="r_VN">—</b> m³/h</div>
-      </div>
-      <div class="result highlight">
-        <div class="label">POT. NECESSÁRIA · V<sub>B</sub></div>
-        <div class="value"><span id="r_VB_kW">—</span><span class="unit-mini">kW</span></div>
-        <div class="sub-value"><b id="r_VB">—</b> m³/h</div>
-      </div>
-      <div class="result">
-        <div class="label">POT. MEDIDA · V<sub>B</sub></div>
+      <div class="result highlight main">
+        <div class="label">POT. MEDIDA · V<sub>B</sub> <span class="tag">RESULTADO REAL</span></div>
         <div class="value"><span id="r_VBmed_kW">—</span><span class="unit-mini">kW</span></div>
         <div class="sub-value"><b id="r_VBmed">—</b> m³/h</div>
       </div>
+      <div class="result ref">
+        <div class="label">POT. NECESSÁRIA · V<sub>B</sub> <span class="tag-ref">REFERÊNCIA</span></div>
+        <div class="value"><span id="r_VB_kW">—</span><span class="unit-mini">kW</span></div>
+        <div class="sub-value"><b id="r_VB">—</b> m³/h</div>
+      </div>
+      <div class="result ref">
+        <div class="label">POT. NORMAL · V<sub>N</sub> <span class="tag-ref">REFERÊNCIA</span></div>
+        <div class="value"><span id="r_VN_kW">—</span><span class="unit-mini">kW</span></div>
+        <div class="sub-value"><b id="r_VN">—</b> m³/h</div>
+      </div>
+      <div class="result ref dev">
+        <div class="label">DESVIO MEDIDO vs NECESSÁRIO</div>
+        <div class="value" id="r_delta_kw">—</div>
+        <div class="sub-value"><span id="r_delta_m3">—</span> <span class="status" id="r_status">—</span></div>
+      </div>
     </div>
 
-    <div class="compare">
-      <div class="delta-block">
-        <div class="label-small">DESVIO MEDIDO vs NECESSÁRIO</div>
-        <div class="delta-value" id="r_delta_kw">—</div>
-        <div class="delta-sub" id="r_delta_m3">—</div>
-      </div>
-      <div class="status" id="r_status">—</div>
-    </div>
   </div>
 
   <!-- RECORDING MODULE -->
@@ -1551,7 +1610,7 @@
       <a href="mailto:vasco.silva@lojaindustria.com">vasco.silva@lojaindustria.com</a>
       <a href="tel:+351935910086">+351 935 910 086</a>
     </div>
-    <div style="margin-top:10px; font-size:10px; color:var(--muted); opacity:0.6;">v2026.05.05.c</div>
+    <div style="margin-top:10px; font-size:10px; color:var(--muted); opacity:0.6;">v2026.10.07</div>
   </footer>
 
 </div>
@@ -1562,6 +1621,12 @@
 <script>
   const $ = id => document.getElementById(id);
 
+  function refSheet(btn){
+    const card=btn.closest('.collapsible-body');
+    card.querySelectorAll('.ref-tab').forEach(b=>b.classList.toggle('active',b===btn));
+    card.querySelectorAll('.ref-sheet').forEach(d=>d.classList.toggle('active',d.id===btn.dataset.sheet));
+  }
+  window.refSheet=refSheet;
   // Toggle collapsible cards
   function toggleCard(id) {
     document.getElementById(id).classList.toggle('open');
